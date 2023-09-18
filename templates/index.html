@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Budget App{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if user_logged_in %}
+    
+    <h1 class="text-center mb-4">Current Budgets</h1>
+
+    <!-- Budget creation form -->
+    <div class="card mb-4">
+        <div class="card-header">Create a New Budget</div>
+        <div class="card-body">
+            <form action="/create_budget" method="post">
+                <div class="mb-3">
+                    <label for="budget_name" class="form-label">Budget Name:</label>
+                    <input type="text" id="budget_name" name="budget_name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="budget_amount" class="form-label">Amount:</label>
+                    <input type="number" id="budget_amount" name="budget_amount" class="form-control" step="0.01" required>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <input type="submit" value="Create Budget" class="btn btn-primary">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- List of budgets -->
+    {% if budgets %}
+    <div class="card">
+        <div class="card-header">Your Budgets</div>
+        <ul class="list-group list-group-flush">
+            {% for budget in budgets %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ budget.name }}
+                <div>
+                    <span class="badge bg-success custom-badge rounded-pill">${{ budget.amount }}</span>
+                    <!-- Edit and Delete buttons -->
+                    <a href="/edit_budget/{{ budget._id }}" class="btn btn-lg btn-warning ml-2">Edit</a>
+                    <a href="/delete_budget/{{ budget._id }}" class="btn btn-lg btn-danger ml-2" onclick="return confirm('Are you sure?');">Delete</a>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center" role="alert">
+        You have no budgets. Add one above!
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="alert alert-danger" role="alert">
+                You are not logged in. <a href="/login" class="alert-link">Login</a> or <a href="/register" class="alert-link">Register</a>.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

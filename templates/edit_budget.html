@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Edit Budget{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Edit Budget</h1>
+
+    <div class="card">
+        <div class="card-header">Modify Your Budget</div>
+        <div class="card-body">
+            <form action="/update_budget/{{ budget._id }}" method="post">
+                <div class="mb-3">
+                    <label for="budget_name" class="form-label">Budget Name:</label>
+                    <input type="text" id="budget_name" name="budget_name" class="form-control" value="{{ budget.name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="budget_amount" class="form-label">Amount:</label>
+                    <input type="number" id="budget_amount" name="budget_amount" class="form-control" value="{{ budget.amount }}" step="0.01" required>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <input type="submit" value="Update Budget" class="btn btn-primary">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
