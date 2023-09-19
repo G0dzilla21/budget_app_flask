@@ -20,6 +20,22 @@
                     <label for="budget_amount" class="form-label">Amount:</label>
                     <input type="number" id="budget_amount" name="budget_amount" class="form-control" step="0.01" required>
                 </div>
+                <div class="mb-3">
+                    <label for="start_date" class="form-label">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="end_date" class="form-label">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="budget_category" class="form-label">Category:</label>
+                    <select id="budget_category" name="budget_category" class="form-select" required>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Food">Food</option>
+                    </select>
+                </div>
                 <div class="d-flex justify-content-end">
                     <input type="submit" value="Create Budget" class="btn btn-primary">
                 </div>
@@ -28,28 +44,36 @@
     </div>
 
     <!-- List of budgets -->
-    {% if budgets %}
-    <div class="card">
-        <div class="card-header">Your Budgets</div>
-        <ul class="list-group list-group-flush">
-            {% for budget in budgets %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ budget.name }}
-                <div>
-                    <span class="badge bg-success custom-badge rounded-pill">${{ budget.amount }}</span>
-                    <!-- Edit and Delete buttons -->
-                    <a href="/edit_budget/{{ budget._id }}" class="btn btn-lg btn-warning ml-2">Edit</a>
-                    <a href="/delete_budget/{{ budget._id }}" class="btn btn-lg btn-danger ml-2" onclick="return confirm('Are you sure?');">Delete</a>
+        {% if budgets %}
+        <div class="card">
+            <div class="card-header">Your Budgets</div>
+            <ul class="list-group list-group-flush">
+                {% for budget in budgets %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>{{budget.category}}: {{ budget.name }}</h5>
+                        <span class="badge bg-success custom-badge rounded-pill">${{ budget.amount }}</span>
+                        <span class="badge bg-important rounded-pill grey-bg">Start Date: {{ budget.startDate }}</span>
+                        <span class="badge bg-important rounded-pill grey-bg">End Date: {{ budget.endDate }}</span>
+                    </div>
+                    <div>
+                        <!-- Edit and Delete buttons -->
+                        <a href="/edit_budget/{{ budget._id }}" class="btn btn-lg btn-warning ml-2">Edit</a>
+                        <a href="/delete_budget/{{ budget._id }}" class="btn btn-lg btn-danger ml-2" onclick="return confirm('Are you sure?');">Delete</a>
+                    </div>
+                </li>
+                <!-- Placeholder for the chart -->
+                <div class="budget-chart-container">
+                    <canvas id="budgetChart{{ budget._id }}" width="400" height="200"></canvas>
                 </div>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% else %}
-    <div class="alert alert-warning text-center" role="alert">
-        You have no budgets. Add one above!
-    </div>
-    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            You have no budgets. Add one above!
+        </div>
+        {% endif %}
 
     {% else %}
     <div class="row">
@@ -62,15 +86,4 @@
     {% endif %}
 </div>
 
-<div class="chat-box">
-  <button id="show-chat-button">AI Assistant</button>
-  <div id="chat-container" class="hidden">
-      <h3>AI Assistant</h3>
-      <div class="chat-messages"></div>
-      <form id="chat-form">
-          <input type="text" id="message-input" placeholder="Type your message..." required>
-          <button type="submit">Send</button>
-      </form>
-  </div>
-</div>
 {% endblock %}

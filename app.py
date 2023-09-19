@@ -111,12 +111,20 @@ def create_budget():
     if "user_id" in session:
         budget_name = request.form["budget_name"]
         budget_amount = float(request.form["budget_amount"])
+        start_date = request.form["start_date"]
+        end_date = request.form["end_date"]
+        category = request.form["budget_category"]
+        
         budgets_collection.insert_one({
             "user_id": session["user_id"],
             "name": budget_name,
             "amount": budget_amount,
-            "date_created": datetime.utcnow()
-        })
+            "date_created": datetime.utcnow(),
+            "startDate": start_date,
+            "endDate": end_date,
+            "category":  category,
+            "transactions": []
+    })
         return redirect("/")
     else:
         return redirect("/login")
@@ -143,12 +151,19 @@ def update_budget(budget_id):
     if "user_id" in session:
         new_name = request.form["budget_name"]
         new_amount = float(request.form["budget_amount"])
+        start_date = request.form["start_date"]
+        end_date = request.form["end_date"]
+        category = request.form["budget_category"]
         
         budgets_collection.update_one(
             {"_id": ObjectId(budget_id), "user_id": session["user_id"]},
             {"$set": {
                 "name": new_name,
-                "amount": new_amount
+                "amount": new_amount,
+                "startDate": start_date,
+                "endDate": end_date,
+                "category":  category,
+                "transactions": []
             }}
         )
         
