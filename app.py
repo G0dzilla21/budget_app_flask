@@ -15,6 +15,7 @@ load_dotenv()
 app = Flask(__name__, static_url_path='/static')
 app.config["SECRET_KEY"] = "your_secret_key"
 app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_TYPE"] = "filesystem"
 
 bcrypt = Bcrypt(app)
 Session(app)
@@ -155,7 +156,11 @@ def update_budget(budget_id):
     else:
         return redirect("/login")
 
-         
+
+@app.route('/')
+def index():
+    api_secret_key = os.getenv('GPT_SECRET_KEY')
+    return render_template('index.html', api_secret_key=api_secret_key)    
 
 
 if __name__ == "__main__":

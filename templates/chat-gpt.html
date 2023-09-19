@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat-GPT{% endblock %}
+
+{% block content %}
+<div class="chat-box">
+  <button id="show-chat-button">AI Assistant</button>
+  <div id="chat-container" class="hidden">
+      <h3>AI Assistant</h3>
+      <div class="chat-messages"></div>
+      <form id="chat-form">
+          <input type="text" id="message-input" placeholder="Type your message..." required>
+          <button type="submit">Send</button>
+      </form>
+  </div>
+</div>
+
+<form id="apiForm">
+  <label for="message">Message:</label>
+  <input type="text" id="message" name="message" required>
+  <button type="submit">Send Message</button>
+</form>
+<div id="apiResponse"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      // Define the API URL
+      const apiUrl = 'https://api.openai.com/v1/engines/text-curie-001/completions'; // Replace with your API URL
+
+      // Get the form element
+      const apiForm = document.getElementById('apiForm');
+
+      // Function to handle form submission
+      apiForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          // Get the input value
+          const message = document.getElementById('message').value;
+
+          // Create the data object
+          const data = {
+              prompt: message,
+              max_tokens: 150,
+              temperature: 0.7,
+              frequency_penalty: 0,
+              presence_penalty: 0,
+              stop: ["Thank you for your assistance."]
+          };
+
+          // Access the API secret key passed from Flask
+          const apiSecretKey = "{{ api_secret_key }}";
+
+          // Send a POST request to the API
+          try {
+              const response = await fetch(apiUrl, {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${apiSecretKey}`, // Replace with your API key
+                  },
+                  body: JSON.stringify(data),
+              });
+
+              if (!response.ok) {
+                  throw new Error('Network response was not ok');
+              }
+
+              const json = await response.json();
+
+              // Handle the API response data here
+              document.getElementById('apiResponse').textContent = JSON.stringify(json, null, 2);
+          } catch (error) {
+              console.error('Error:', error);
+              document.getElementById('apiResponse').textContent = 'An error occurred.';
+          }
+      });
+  });
+</script>
+{% endblock %}

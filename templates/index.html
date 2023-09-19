@@ -61,4 +61,16 @@
     </div>
     {% endif %}
 </div>
+
+<div class="chat-box">
+  <button id="show-chat-button">AI Assistant</button>
+  <div id="chat-container" class="hidden">
+      <h3>AI Assistant</h3>
+      <div class="chat-messages"></div>
+      <form id="chat-form">
+          <input type="text" id="message-input" placeholder="Type your message..." required>
+          <button type="submit">Send</button>
+      </form>
+  </div>
+</div>
 {% endblock %}
