@@ -123,6 +123,7 @@ def create_budget():
             "startDate": start_date,
             "endDate": end_date,
             "category":  category,
+            "total": 0,
             "transactions": []
     })
         return redirect("/")
@@ -171,7 +172,55 @@ def update_budget(budget_id):
     else:
         return redirect("/login")
 
-         
+@app.route("/add_transaction/<budget_id>", methods=["POST"])
+def add_transaction(budget_id):
+    if "user_id" in session:
+        item = request.form["transaction_item"]
+        amount = float(request.form["transaction_amount"])
+
+        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
+        if not budget:
+            return redirect("/")
+
+        # Calculate the total of existing transactions
+        existing_transactions_total = sum(trans["amount"] for trans in budget["transactions"])
+
+        # Validate the new transaction
+        if amount < 0 or (existing_transactions_total + amount) > budget["amount"]:
+            return redirect("/")
+
+        # Add the new transaction
+        new_transaction = {
+        "item": item,
+        "amount": amount,
+        "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        new_total = budget.get("total", 0) + amount
+        budgets_collection.update_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]},
+                                      {"$set": {"total": new_total}, "$push": {"transactions": new_transaction}})
+        
+
+    return redirect("/")
+@app.route("/remove_transaction/<budget_id>/<transaction_index>", methods=["GET"])
+def remove_transaction(budget_id, transaction_index):
+    if "user_id" in session:
+        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
+        if not budget:
+            return redirect("/")
+        
+        # Get the transaction to remove
+        transaction_to_remove = budget["transactions"][int(transaction_index)]
+        
+        # Update the "total" and remove the transaction
+        new_total = budget.get("total", 0) - transaction_to_remove["amount"]
+        budgets_collection.update_one(
+            {"_id": ObjectId(budget_id), "user_id": session["user_id"]},
+            {
+                "$set": {"total": new_total},
+                "$pull": {"transactions": transaction_to_remove}
+            }
+        )
+    return redirect("/")
 
 
 if __name__ == "__main__":
