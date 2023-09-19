@@ -6,7 +6,6 @@ from flask_session import Session
 from mongo_connect import client
 import requests
 from dotenv import load_dotenv #pip install python-dotenv
-from bson import json_util
 from datetime import datetime
 
 from collections import defaultdict
