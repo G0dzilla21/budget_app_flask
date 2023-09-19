@@ -164,7 +164,6 @@ def update_budget(budget_id):
                 "startDate": start_date,
                 "endDate": end_date,
                 "category":  category,
-                "transactions": []
             }}
         )
         
