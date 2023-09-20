@@ -120,7 +120,10 @@
                 }
                 const json = await response.json();
                 // Handle the API response data here
-                document.getElementById('apiResponse').textContent = json.choices[0].text;
+                const chatMessagesDiv = document.querySelector('.chat-messages');
+                const messageElem = document.createElement('p');
+                messageElem.textContent = "AI: " + json.choices[0].text.trim();
+                chatMessagesDiv.appendChild(messageElem);
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('apiResponse').textContent = 'An error occurred.';
