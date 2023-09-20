@@ -10,11 +10,11 @@ from datetime import datetime
 
 from collections import defaultdict
 
+
+app = Flask(__name__)
 load_dotenv()
 
-app = Flask(__name__, static_url_path='/static')
-app.config["SECRET_KEY"] = "your_secret_key"
-app.config["SESSION_TYPE"] = "filesystem"
+app.config["API_SECRET_KEY"] = "api_secret_key"
 app.config["SESSION_TYPE"] = "filesystem"
 
 bcrypt = Bcrypt(app)
@@ -28,6 +28,9 @@ budgets_collection = db["budgets"]
 # For user data
 users_collection = db["users"]
 
+# chatbot api key
+api_secret_key = os.getenv("GPT_SECRET_KEY")
+
 
 @app.route("/")
 def index():
@@ -35,8 +38,8 @@ def index():
     if "user_id" in session:
         user = db.users.find_one({"_id": session["user_id"]})
         user_budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
-        return render_template("index.html", user=user, user_logged_in=True, budgets=user_budgets)
-    return render_template("index.html", user_logged_in=False)
+        return render_template("index.html", user=user, user_logged_in=True, budgets=user_budgets, api_secret_key=api_secret_key)
+    return render_template("index.html", user_logged_in=False, api_secret_key=api_secret_key)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -172,10 +175,11 @@ def update_budget(budget_id):
         return redirect("/login")
 
 
-@app.route('/')
-def index():
-    api_secret_key = os.getenv('GPT_SECRET_KEY')
-    return render_template('index.html', api_secret_key=api_secret_key)    
+
+
+# @app.route('/')
+# def chat_gpt():
+#     return render_template('chat-gpt.html', api_secret_key=api_secret_key)    
 
 
 if __name__ == "__main__":

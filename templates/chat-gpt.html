@@ -1,17 +1,8 @@
-{% extends 'base.html' %}
-
-{% block title %}Chat-GPT{% endblock %}
-
-{% block content %}
 <div class="chat-box">
   <button id="show-chat-button">AI Assistant</button>
   <div id="chat-container" class="hidden">
       <h3>AI Assistant</h3>
       <div class="chat-messages"></div>
-      <form id="chat-form">
-          <input type="text" id="message-input" placeholder="Type your message..." required>
-          <button type="submit">Send</button>
-      </form>
   </div>
 </div>
 
@@ -20,12 +11,14 @@
   <input type="text" id="message" name="message" required>
   <button type="submit">Send Message</button>
 </form>
-<div id="apiResponse"></div>
+<div id="apiResponse">
+
+</div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
       // Define the API URL
-      const apiUrl = 'https://api.openai.com/v1/engines/text-curie-001/completions'; // Replace with your API URL
+      const apiUrl = 'https://api.openai.com/v1/engines/curie/completions'; // Replace with your API URL
 
       // Get the form element
       const apiForm = document.getElementById('apiForm');
@@ -40,7 +33,7 @@
           // Create the data object
           const data = {
               prompt: message,
-              max_tokens: 150,
+              max_tokens: 50,
               temperature: 0.7,
               frequency_penalty: 0,
               presence_penalty: 0,
@@ -48,7 +41,7 @@
           };
 
           // Access the API secret key passed from Flask
-          const apiSecretKey = "{{ api_secret_key }}";
+          const apiSecretKey = "{{ api_secret_key }}"
 
           // Send a POST request to the API
           try {
@@ -64,11 +57,10 @@
               if (!response.ok) {
                   throw new Error('Network response was not ok');
               }
-
               const json = await response.json();
-
+              console.log(json);
               // Handle the API response data here
-              document.getElementById('apiResponse').textContent = JSON.stringify(json, null, 2);
+              document.getElementById('apiResponse').textContent = json.choices[0].text;
           } catch (error) {
               console.error('Error:', error);
               document.getElementById('apiResponse').textContent = 'An error occurred.';
@@ -76,4 +68,3 @@
       });
   });
 </script>
-{% endblock %}
