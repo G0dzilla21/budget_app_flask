@@ -12,10 +12,11 @@
             {% if user_logged_in %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Welcome!
+                    Menu
                 </a>
                 <div class="dropdown-menu" aria-labelledby="userDropdown">
                     <a class="dropdown-item" href="/">Home</a>
+                    <a class="dropdown-item" href="/subscriptions">Subscriptions</a>
                     <a class="dropdown-item" href="/profile">Profile</a>
                     <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
                 </div>
