@@ -99,7 +99,7 @@
         });
 
         // Define the API URL
-        const apiUrl = 'https://api.openai.com/v1/engines/curie/completions'; 
+        const apiUrl = 'https://api.openai.com/v1/engines/davinci/completions'; 
 
         // Get the form element
         const apiForm = document.getElementById('apiForm');
@@ -112,13 +112,33 @@
             const messageInput = document.getElementById('message');
             const message = messageInput.value;
 
+            // Define an empty prompt
+            let prompt = "";
+
+            // Determine the prompt based on user input
+            switch (message.toLowerCase()) {
+              case "tell me about the website":
+                  prompt = "Please provide an introduction to the website and its purpose.";
+                  break;
+              case "what services do you offer":
+                  prompt = "I would like to know more about the services offered by the website.";
+                  break;
+              case "how can i contact you":
+                  prompt = "Please provide contact information for the website, including email, phone number, and address if available.";
+                  break;
+              // Add more cases for other prompts as needed
+              default:
+                  prompt = `Tell me more about the website: ${message}`;
+                  break;
+            }
+
             // Create the data object
             const data = {
-                prompt: message,
-                max_tokens: 50,
-                temperature: 0.7,
-                frequency_penalty: 0,
-                presence_penalty: 0,
+                prompt: prompt,
+                max_tokens: 150,
+                temperature: 0.5,
+                frequency_penalty: 0.2,
+                presence_penalty: 0.5,
                 stop: ["Thank you for your assistance."]
             };
 
