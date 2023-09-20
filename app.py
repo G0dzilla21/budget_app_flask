@@ -51,7 +51,7 @@ def register():
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
         db.users.insert_one({"username": username, "password": hashed_password, "email": email})
         return redirect("/login")
-    return render_template("register.html", message=None)  # Pass a message to the template if needed
+    return render_template("register.html", message=None, api_secret_key=api_secret_key)  # Pass a message to the template if needed
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -65,7 +65,7 @@ def login():
         else:
             message = "Invalid username or password"  # Add an error message if login fails
             return render_template("login.html", message=message)
-    return render_template("login.html", message=None)
+    return render_template("login.html", message=None, api_secret_key=api_secret_key)
 
 @app.route("/logout")
 def logout():
