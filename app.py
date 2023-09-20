@@ -1,6 +1,6 @@
 import os
 from bson import ObjectId
-from flask import Flask, json, render_template, request, redirect, session, jsonify, url_for, flash
+from flask import Flask, json, render_template, request, redirect, session, jsonify, url_for, flash, get_flashed_messages
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from mongo_connect import client
@@ -43,6 +43,10 @@ def index():
     if "user_id" in session:
         user = db.users.find_one({"_id": session["user_id"]})
         user_budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
+        try:
+            update_budget_activity_status()
+        except:
+            flash("Problem updating budget statuses.", 'info')
         return render_template("index.html", user=user, user_logged_in=True, budgets=user_budgets)
     return render_template("index.html", user_logged_in=False)
 
@@ -125,19 +129,25 @@ def create_budget():
         end_date = request.form["end_date"]
         category = request.form["budget_category"]
         
-        budgets_collection.insert_one({
-            "user_id": session["user_id"],
-            "name": budget_name,
-            "amount": budget_amount,
-            "date_created": datetime.utcnow(),
-            "created_by": username,
-            "startDate": start_date,
-            "endDate": end_date,
-            "category":  category,
-            "total": 0,
-            "transactions": []
 
-    })
+        if start_date <= end_date:
+            budgets_collection.insert_one({
+                "user_id": session["user_id"],
+                "name": budget_name,
+                "amount": budget_amount,
+                "date_created": datetime.utcnow(),
+                "created_by": username,
+                "startDate": start_date,
+                "endDate": end_date,
+                "category":  category,
+                "isActive": True,
+                "total": 0,
+                "transactions": []
+                })
+        elif start_date > end_date:
+            flash(u'Failed to add Budget... Confirm that your start date is before your end date.', 'info')
+
+    
         return redirect("/")
     else:
         return redirect("/login")
@@ -199,7 +209,8 @@ def add_transaction(budget_id):
 
         # Validate the new transaction
         if amount < 0 or (existing_transactions_total + amount) > budget["amount"]:
-            return redirect("/")
+            flash(u'Failed: You are attempting a transaction that will surpass your budget!', 'info')
+            return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
 
         # Add the new transaction
         new_transaction = {
@@ -212,7 +223,7 @@ def add_transaction(budget_id):
                                       {"$set": {"total": new_total}, "$push": {"transactions": new_transaction}})
         
 
-    return redirect("/")
+    return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
 @app.route("/remove_transaction/<budget_id>/<transaction_index>", methods=["GET"])
 def remove_transaction(budget_id, transaction_index):
     if "user_id" in session:
@@ -232,7 +243,20 @@ def remove_transaction(budget_id, transaction_index):
                 "$pull": {"transactions": transaction_to_remove}
             }
         )
-    return redirect("/")
+    return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
+@app.route("/manage_transactions/<budget_id>")
+def manage_transactions(budget_id):
+    if "user_id" in session:
+        user = db.users.find_one({"_id": session["user_id"]})
+        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
+
+        if not budget:
+            flash("Budget not found", "error")
+            return redirect("/")
+
+        return render_template("manage_transactions.html", user=user, budget=budget, user_logged_in=True)
+
+    return redirect("/login")
 
 @app.route('/subscriptions', methods=['GET', 'POST'])
 def subscriptions():
@@ -368,7 +392,14 @@ def edit_subscription(subscription_id):
     flash('Successfully edited subscription', 'success')  # 'success' is an optional category
     return redirect(url_for('subscriptions'))
 
-
+#function for updating budget status
+def update_budget_activity_status():
+    current_date = datetime.utcnow()
+    budgets = budgets_collection.find()
+    for budget in budgets:
+        end_date = datetime.strptime(str(budget["endDate"]), "%Y-%m-%d")
+        is_active = current_date < (end_date + timedelta(days=1))
+        budgets_collection.update_one({"_id": budget["_id"]}, {"$set": {"isActive": is_active}})
 
 if __name__ == "__main__":
     app.run(debug=True)
