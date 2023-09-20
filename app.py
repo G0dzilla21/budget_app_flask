@@ -37,6 +37,28 @@ def nav_menu():
         user = db.users.find_one({"_id": session["user_id"]})
         return render_template("nav_menu.html", username=user["username"])
 
+@app.route("/dashboard")
+def dashboard():
+    # Ensure user is logged in
+    if "user_id" not in session:
+        return redirect("/login")
+
+    # Retrieve the budgets associated with the logged-in user
+    budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
+    
+    # Extract data for chart from the budgets list
+    budget_names = [budget['name'] for budget in budgets]
+    budget_amounts = [budget['amount'] for budget in budgets]
+    budget_totals = [budget.get('total', 0) for budget in budgets]
+    print(budget_names)
+    # Now pass these to the template
+    return render_template("chart.html", 
+                           budgets=budgets,
+                           budget_names=budget_names,
+                           budget_amounts=budget_amounts,
+                           budget_totals=budget_totals, user_logged_in=True)
+
+
 @app.route("/")
 def index():
     """Renders the index page."""
