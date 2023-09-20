@@ -12,3 +12,7 @@
     padding: 8px 12px; /* Adjust as necessary to get the size you want */
     font-size: 1.2rem; /* Adjust as necessary to increase font size */
 }
+
+.navbar-nav .dropdown-menu {
+    min-width: 400px !important; 
+}

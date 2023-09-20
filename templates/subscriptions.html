@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Subscriptions{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if user_logged_in %}
+    <h2>Manage Subscriptions</h2>
+
+    <!-- Subscription Addition Form -->
+    <div class="my-4">
+        
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#addSubscriptionForm" aria-expanded="false" aria-controls="addSubscriptionForm">
+            <h4>Add New Subscription &#x25BC;</h4>
+        </button>
+
+        <div class="collapse" id="addSubscriptionForm">
+        <form action="/add_subscription" method="post">
+            <div class="form-group">
+                <label for="name">Subscription Name:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="start_date">Start Date:</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" required>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount ($):</label>
+                <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+            </div>
+            <div class="form-group">
+                <label for="renewal_frequency">Renewal Frequency:</label>
+                <select class="form-control" id="renewal_frequency" name="renewal_frequency" required>
+                    <option value="monthly">Monthly</option>
+                    <option value="annually">Annual</option>
+                    <!-- Add other frequencies if needed -->
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Subscription</button>
+        </form>
+        </div>
+    </div>
+    <br>
+    <br>
+
+    <h3>Upcoming Renewals (7 Days)</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Start Date</th>
+                <th>Amount</th>
+                <th>Renewal Frequency</th>
+                <th>Actions</th> <!-- New column for actions -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in upcoming %}
+            <tr class="table-danger"> <!-- Highlighted row -->
+                <td>{{ sub.name }}</td>
+                <td>{{ sub.start_date.strftime('%Y-%m-%d') }}</td>
+                <td>${{ sub.amount }}</td>
+                <td>{{ sub.renewal_frequency }}</td>
+                <td>
+                    <a href="/edit_subscription/{{ sub._id }}" class="btn btn-warning">Edit</a>
+                    <a href="/delete_subscription/{{ sub._id }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this subscription?');">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <h3>Regular Subscriptions</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Start Date</th>
+                <th>Amount</th>
+                <th>Renewal Frequency</th>
+                <th>Actions</th> <!-- New column for actions -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in regular %}
+            <tr>
+                <td>{{ sub.name }}</td>
+                <td>{{ sub.start_date.strftime('%Y-%m-%d') }}</td>
+                <td>${{ sub.amount }}</td>
+                <td>{{ sub.renewal_frequency }}</td>
+                <td>
+                    <a href="/edit_subscription/{{ sub._id }}" class="btn btn-warning">Edit</a>
+                    <a href="/delete_subscription/{{ sub._id }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this subscription?');">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+    {% else %}
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="alert alert-danger" role="alert">
+                You are not logged in. <a href="/login" class="alert-link">Login</a> or <a href="/register" class="alert-link">Register</a>.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
