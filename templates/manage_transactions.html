@@ -10,7 +10,19 @@
         <div class="card-header">Budget Details</div>
         <div class="card-body">
             <h5>{{ budget.category }}: {{ budget.name }}</h5>
-            <span class="badge bg-success custom-badge rounded-pill">${{ budget.amount }}</span>
+
+            <!-- Show budget spending color indicator -->
+                {% set remaining = budget.amount - budget.total|round(2) %}
+
+                {% if remaining > (budget.amount / 2) %}
+                <span class="badge bg-success custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                {% elif remaining > (budget.amount / 3) %}
+                <span class="badge bg-warning custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                {% else %}
+                <span class="badge bg-danger custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                {% endif %}
+            <!-- End of if statements for color indicator -->
+
             <span class="badge bg-white rounded-pill border">Start Date: {{ budget.startDate }} | End Date: {{ budget.endDate }}</span>
         </div>
     </div>
@@ -52,12 +64,12 @@
                 <li class="list-group-item">
                     {{ transaction.item }}: ${{ transaction.amount|round(2) }}
                     <a href="/remove_transaction/{{ budget._id }}/{{ loop.index0 }}" class="btn btn-danger btn-sm">Remove</a>
-                    {% if transaction.date > budget.endDate %}
-                    <br> <p class="badge bg-warning" >Date: {{ transaction.date }}</p>
+                    {% if transaction.date < budget.endDate %}
+                    <br> <p class="badge bg-dark text-danger" >Date: {{ transaction.date }}</p>
                     {% endif %}
 
-                    {% if transaction.date <= budget.endDate %}
-                    <br> <p class="badge bg-success" >Date: {{ transaction.date }}</p>
+                    {% if transaction.date >= budget.endDate %}
+                    <br> <p class="badge bg-light text-dark" >Date: {{ transaction.date }}</p>
                     {% endif %}
                 </li>
                 {% endfor %}
