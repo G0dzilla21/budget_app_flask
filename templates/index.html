@@ -97,6 +97,7 @@
                         <a href="/edit_budget/{{ budget._id }}" class="btn btn-lg btn-warning ml-2">Edit</a>
                         <a href="/delete_budget/{{ budget._id }}" class="btn btn-lg btn-danger ml-2" onclick="return confirm('Are you sure?');">Delete</a>
                     </div>
+                    <br><span class="badge bg-important rounded-pill grey-bg">This budget was created on {{ budget.date_created }} by {{ budget.created_by }}</span>
             </li>
                 {% endfor %}
             </ul>

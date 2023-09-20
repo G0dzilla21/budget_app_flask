@@ -109,6 +109,8 @@ def update_password():
 @app.route("/create_budget", methods=["POST"])
 def create_budget():
     if "user_id" in session:
+        user = db.users.find_one({"_id": session["user_id"]})
+        username = user['username']
         budget_name = request.form["budget_name"]
         budget_amount = float(request.form["budget_amount"])
         start_date = request.form["start_date"]
@@ -120,11 +122,13 @@ def create_budget():
             "name": budget_name,
             "amount": budget_amount,
             "date_created": datetime.utcnow(),
+            "created_by": username,
             "startDate": start_date,
             "endDate": end_date,
             "category":  category,
             "total": 0,
             "transactions": []
+
     })
         return redirect("/")
     else:
