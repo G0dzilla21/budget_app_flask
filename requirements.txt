@@ -1,0 +1,8 @@
+-i https://pypi.org/simple
+
+bson==latest
+flask==latest
+flask_bcrypt==latest
+flask_session==latest
+python-dotenv==latest
+pymongo==latest
