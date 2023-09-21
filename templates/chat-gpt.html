@@ -87,9 +87,10 @@
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
         const chatContainer = document.getElementById('chat-container');
         const showChatButton = document.getElementById('show-chat-button');
+        
         showChatButton.addEventListener('click', () => {
             if (chatContainer.classList.contains('hidden')) {
                 chatContainer.classList.remove('hidden');
@@ -99,7 +100,7 @@
         });
 
         // Define the API URL
-        const apiUrl = 'https://api.openai.com/v1/engines/davinci/completions'; 
+        const apiUrl = 'https://api.openai.com/v1/chat/completions'; 
 
         // Get the form element
         const apiForm = document.getElementById('apiForm');
@@ -108,42 +109,25 @@
         apiForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            // Get the input value
+            // Get the user's input
             const messageInput = document.getElementById('message');
-            const message = messageInput.value;
+            const userMessage = messageInput.value;
 
-            // Define an empty prompt
-            let prompt = "";
+            // Generate the prompt for the assistant
+            let prompt = `The user needs budgeting advice: "${userMessage}". Please give one concise and clear answer from this point forward:`;
 
-            // Determine the prompt based on user input
-            switch (message.toLowerCase()) {
-              case "tell me about the website":
-                  prompt = "Please provide an introduction to the website and its purpose.";
-                  break;
-              case "what services do you offer":
-                  prompt = "I would like to know more about the services offered by the website.";
-                  break;
-              case "how can i contact you":
-                  prompt = "Please provide contact information for the website, including email, phone number, and address if available.";
-                  break;
-              // Add more cases for other prompts as needed
-              default:
-                  prompt = `Tell me more about the website: ${message}`;
-                  break;
-            }
-
-            // Create the data object
+            // Create the data object for the API request
             const data = {
-                prompt: prompt,
-                max_tokens: 150,
-                temperature: 0.5,
-                frequency_penalty: 0.2,
-                presence_penalty: 0.5,
-                stop: ["Thank you for your assistance."]
+
+                "model": "gpt-3.5-turbo",
+
+                "messages": [{"role": "user", "content": prompt}],
+
+                "temperature": 0.8
             };
 
             // Access the API secret key passed from Flask
-            const apiSecretKey = "{{ api_secret_key }}"
+            const apiSecretKey = "{{ api_secret_key }}";
 
             // Send a POST request to the API
             try {
@@ -159,17 +143,22 @@
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
+
                 const json = await response.json();
-                // Handle the API response data here
+
+                // Display the user's message and the assistant's response
                 const chatMessagesDiv = document.querySelector('.chat-messages');
                 const userMessageElem = document.createElement('p');
-                const messageElem = document.createElement('p');
-                userMessageElem.textContent = message;
+                const assistantMessageElem = document.createElement('p');
+                
+                userMessageElem.textContent = `User: ${userMessage}`;
                 userMessageElem.classList.add('user-message'); // Add user message class
-                messageElem.textContent = json.choices[0].text.trim();
-                messageElem.classList.add('ai-message'); // Add AI message class
+                
+                assistantMessageElem.textContent = `Assistant: ${json.choices[0].message.content}`;
+                assistantMessageElem.classList.add('ai-message'); // Add AI message class
+                
                 chatMessagesDiv.appendChild(userMessageElem);
-                chatMessagesDiv.appendChild(messageElem);
+                chatMessagesDiv.appendChild(assistantMessageElem);
 
                 // Clear the input box
                 messageInput.value = "";
@@ -186,6 +175,7 @@
             }
         });
     });
+
 </script>
 
 </body>
