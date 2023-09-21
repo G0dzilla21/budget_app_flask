@@ -5,6 +5,8 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4">Manage Transactions</h1>
 
+
+    
     <!-- Display budget details -->
     <div class="card mb-4">
         <div class="card-header">Budget Details</div>
@@ -25,9 +27,11 @@
 
             <span class="badge bg-white rounded-pill border">Start Date: {{ budget.startDate }} | End Date: {{ budget.endDate }}</span>
         </div>
+        
     </div>
 
-    <!-- Add a Transaction form -->
+
+<!-- Add a Transaction form -->
     <div class="card mb-4">
         <div class="card-header" data-toggle="collapse" data-target="#addTransactionContent" style="cursor:pointer;">Add a Transaction</div>
         <div class="card-body collapse" id="addTransactionContent">
@@ -64,11 +68,11 @@
                 <li class="list-group-item">
                     {{ transaction.item }}: ${{ transaction.amount|round(2) }}
                     <a href="/remove_transaction/{{ budget._id }}/{{ loop.index0 }}" class="btn btn-danger btn-sm">Remove</a>
-                    {% if transaction.date < budget.endDate %}
+                    {% if transaction.date > budget.endDate %}
                     <br> <p class="badge bg-dark text-danger" >Date: {{ transaction.date }}</p>
                     {% endif %}
 
-                    {% if transaction.date >= budget.endDate %}
+                    {% if transaction.date <= budget.endDate %}
                     <br> <p class="badge bg-light text-dark" >Date: {{ transaction.date }}</p>
                     {% endif %}
                 </li>
@@ -78,6 +82,55 @@
                 Remaining balance: ${{ budget.amount|round(2) - budget.total|round(2) }}
             </div>
         </div>
+        <div class="card mt-4">
+            <div class="card-header" data-toggle="collapse" data-target="#chartView" style="cursor:pointer;">View Spending Chart</div>
+            <div class="card-body collapse" id="chartView">
+            <canvas id="budgetChart" width="400" height="200"></canvas>
+        
+                <script>
+                    //THIS SCRIPT WILL HAVE SYNTAX CONFLICT IN SOME IDE, PLEASE IGNORE
+        
+                    // Extracting the budget names, amounts, and totals from the Flask context to JavaScript
+                    var budgetNames = {{ budget_names|tojson }};
+                    var budgetAmounts = {{ budget_amounts|tojson }};
+                    var budgetTotals = {{ budget_totals|tojson }};
+                    
+                    // Create the chart
+                    var ctx = document.getElementById('budgetChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: budgetNames,
+                            datasets: [{
+                                label: 'Budget Amount',
+                                data: budgetAmounts,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Total Spent',
+                                data: budgetTotals,
+                                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    
+                </script>
+                </div>
+            </div>
     </div>
+    
 </div>
+
 {% endblock %}

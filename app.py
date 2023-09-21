@@ -54,9 +54,9 @@ def dashboard():
     budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
     
     # Extract data for chart from the budgets list
-    budget_names = [budget['name'] for budget in budgets]
-    budget_amounts = [budget['amount'] for budget in budgets]
-    budget_totals = [budget.get('total', 0) for budget in budgets]
+    budget_names = [budget['name'] for budget in budgets if budget.get('isActive', False)]
+    budget_amounts = [budget['amount'] for budget in budgets if budget.get('isActive', False)]
+    budget_totals = [budget.get('total', 0) for budget in budgets if budget.get('isActive', False)]
     print(budget_names)
     # Now pass these to the template
     return render_template("chart.html", 
@@ -70,12 +70,13 @@ def dashboard():
 def index():
     """Renders the index page."""
     if "user_id" in session:
-        user = db.users.find_one({"_id": session["user_id"]})
-        user_budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
         try:
             update_budget_activity_status()
         except:
             flash("Problem updating budget statuses.", 'info')
+        user = db.users.find_one({"_id": session["user_id"]})
+        user_budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
+        
         return render_template("index.html", user=user, user_logged_in=True, budgets=user_budgets, api_secret_key=api_secret_key)
     return render_template("index.html", user_logged_in=False, api_secret_key=api_secret_key)
 
@@ -274,6 +275,7 @@ def remove_transaction(budget_id, transaction_index):
         )
     return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
 @app.route("/manage_transactions/<budget_id>")
+@app.route("/manage_transactions/<budget_id>")
 def manage_transactions(budget_id):
     if "user_id" in session:
         user = db.users.find_one({"_id": session["user_id"]})
@@ -283,9 +285,18 @@ def manage_transactions(budget_id):
             flash("Budget not found", "error")
             return redirect("/")
 
-        return render_template("manage_transactions.html", user=user, budget=budget, user_logged_in=True)
+        # Extract data for the chart from the budget
+        budget_names = [budget['name']]
+        budget_amounts = [budget['amount']]
+        budget_totals = [budget.get('total', 0)]
 
-    return redirect("/login")
+        return render_template("manage_transactions.html", 
+                               user=user, 
+                               budget=budget, 
+                               user_logged_in=True,
+                               budget_names=budget_names,
+                               budget_amounts=budget_amounts,
+                               budget_totals=budget_totals)
 
 @app.route('/subscriptions', methods=['GET', 'POST'])
 def subscriptions():

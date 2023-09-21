@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,15 +13,18 @@
         .hidden {
             display: none;
         }
+
         .chat-box {
             max-width: 500px;
             margin: 0 auto;
         }
+
         .chat-messages {
             border: 1px solid #e5e5e5;
             height: 200px;
             overflow-y: scroll;
         }
+
         .chat-header {
             display: flex;
             justify-content: space-between;
@@ -29,154 +33,155 @@
             padding: 0.5rem 1rem;
             background-color: #f8f9fa;
         }
+
         #show-chat-button {
             background: none;
             border: none;
             font-size: 2.25rem;
-            color: #007bff; /* Bootstrap primary color */
+            color: #007bff;
             cursor: pointer;
             transition: color 0.3s;
         }
+
         #show-chat-button:hover {
-            color: #0056b3; /* Darken primary color on hover */
+            color: #0056b3;
         }
 
-        /* Style for user's message */
         .user-message {
-            background-color: #007bff; /* Light blue background */
-            color: white; /* White text color */
-            text-align: right; /* Right-aligned */
-            margin-left: 100px; /* Add some margin for separation */
-            padding: 5px; /* Add padding for spacing */
-            border-radius: 10px; /* Rounded corners */
-            clear: both; /* Clear floats to ensure proper positioning */
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+            margin-left: 100px;
+            padding: 5px;
+            border-radius: 10px;
+            clear: both;
         }
-        /* Style for AI's response */
+
         .ai-message {
-            background-color: #afafaf; /* Light pink background */
-            color: black; /* Black text color */
-            text-align: left; /* Left-aligned */
-            margin-right: 100px; /* Add some margin for separation */
-            padding: 5px; /* Add padding for spacing */
-            border-radius: 10px; /* Rounded corners */
-            clear: both; /* Clear floats to ensure proper positioning */
+            background-color: #afafaf;
+            color: black;
+            text-align: left;
+            margin-right: 100px;
+            padding: 5px;
+            border-radius: 10px;
+            clear: both;
         }
     </style>
 </head>
+
 <body>
 
-<div class="container mt-5">
-    <div class="chat-box border rounded-lg shadow">
-        <div class="chat-header">
-            <h4>AI Assistant</h4>
-            <button id="show-chat-button">+</button>
-        </div>
-        <div id="chat-container" class="p-3 bg-light hidden">
-            <div class="chat-messages border rounded p-3 mb-3 bg-white"></div>
-            <form id="apiForm">
-                <div class="input-group">
-                    <input type="text" id="message" name="message" required class="form-control" placeholder="Type your message...">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-outline-secondary">Send</button>
+    <div class="container mt-5">
+        <div class="chat-box border rounded-lg shadow">
+            <div class="chat-header">
+                <h4>AI Assistant</h4>
+                <button id="show-chat-button">+</button>
+            </div>
+            <div id="chat-container" class="p-3 bg-light hidden">
+                <div class="chat-messages border rounded p-3 mb-3 bg-white"></div>
+                <form id="apiForm">
+                    <div class="input-group">
+                        <input type="text" id="message" name="message" required class="form-control" placeholder="Type your message...">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-outline-secondary">Send</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
 
-<script>
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
-        const chatContainer = document.getElementById('chat-container');
-        const showChatButton = document.getElementById('show-chat-button');
-        
-        showChatButton.addEventListener('click', () => {
-            if (chatContainer.classList.contains('hidden')) {
-                chatContainer.classList.remove('hidden');
-            } else {
-                chatContainer.classList.add('hidden');
-            }
-        });
+            const chatContainer = document.getElementById('chat-container');
+            const showChatButton = document.getElementById('show-chat-button');
 
-        // Define the API URL
-        const apiUrl = 'https://api.openai.com/v1/chat/completions'; 
+            showChatButton.addEventListener('click', () => {
+                if (chatContainer.classList.contains('hidden')) {
+                    chatContainer.classList.remove('hidden');
+                } else {
+                    chatContainer.classList.add('hidden');
+                }
+            });
 
-        // Get the form element
-        const apiForm = document.getElementById('apiForm');
+            // Define the API URL
+            const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-        // Function to handle form submission
-        apiForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
+            // Initialize messages array to maintain chat history
+            let messages = [];
 
-            // Get the user's input
-            const messageInput = document.getElementById('message');
-            const userMessage = messageInput.value;
+            // Get the form element
+            const apiForm = document.getElementById('apiForm');
 
-            // Generate the prompt for the assistant
-            let prompt = `The user needs budgeting advice: "${userMessage}". Please give one concise and clear answer from this point forward:`;
+            apiForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
 
-            // Create the data object for the API request
-            const data = {
+                const messageInput = document.getElementById('message');
+                const userMessage = messageInput.value;
 
-                "model": "gpt-3.5-turbo",
-
-                "messages": [{"role": "user", "content": prompt}],
-
-                "temperature": 0.8
-            };
-
-            // Access the API secret key passed from Flask
-            const apiSecretKey = "{{ api_secret_key }}";
-
-            // Send a POST request to the API
-            try {
-                const response = await fetch(apiUrl, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${apiSecretKey}`,
-                    },
-                    body: JSON.stringify(data),
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                // If the user says "end", reset the chat history and return
+                if (userMessage.trim().toLowerCase() === "clear") {
+                    messages = [];
+                    messageInput.value = 'The chat session has been cleared.';
+                    messageInput.focus();
+                    return;
                 }
 
-                const json = await response.json();
+                messages.push({ role: "user", content: " (Please provide a concise answer within 100 tokens.) " + userMessage });
 
-                // Display the user's message and the assistant's response
-                const chatMessagesDiv = document.querySelector('.chat-messages');
-                const userMessageElem = document.createElement('p');
-                const assistantMessageElem = document.createElement('p');
-                
-                userMessageElem.textContent = `User: ${userMessage}`;
-                userMessageElem.classList.add('user-message'); // Add user message class
-                
-                assistantMessageElem.textContent = `Assistant: ${json.choices[0].message.content}`;
-                assistantMessageElem.classList.add('ai-message'); // Add AI message class
-                
-                chatMessagesDiv.appendChild(userMessageElem);
-                chatMessagesDiv.appendChild(assistantMessageElem);
+                const data = {
+                    "model": "gpt-3.5-turbo",
+                    "messages": messages,
+                    "temperature": 0.4,
+                    "max_tokens" : 100
+                };
 
-                // Clear the input box
-                messageInput.value = "";
+                // Replace with your actual OpenAI API secret key
+                const apiSecretKey = "{{api_secret_key}}";
 
-                // Scroll to the bottom of chatMessagesDiv
-                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${apiSecretKey}`,
+                        },
+                        body: JSON.stringify(data),
+                    });
 
-                // Focus on the input box
-                messageInput.focus();
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
 
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('apiResponse').textContent = 'An error occurred.';
-            }
+                    const json = await response.json();
+                    messages.push({ role: "assistant", content: json.choices[0].message.content });
+
+                    const chatMessagesDiv = document.querySelector('.chat-messages');
+                    const userMessageElem = document.createElement('p');
+                    const assistantMessageElem = document.createElement('p');
+
+                    userMessageElem.textContent = `User: ${userMessage}`;
+                    userMessageElem.classList.add('user-message');
+
+                    assistantMessageElem.textContent = `Assistant: ${json.choices[0].message.content}`;
+                    assistantMessageElem.classList.add('ai-message');
+
+                    chatMessagesDiv.appendChild(userMessageElem);
+                    chatMessagesDiv.appendChild(assistantMessageElem);
+
+                    messageInput.value = "";
+                    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+                    messageInput.focus();
+
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
         });
-    });
-
-</script>
+    </script>
 
 </body>
+
 </html>
+
