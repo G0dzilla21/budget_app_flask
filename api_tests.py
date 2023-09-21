@@ -155,7 +155,7 @@ class FlaskAppTestCase(unittest.TestCase):
             }
         )
 
-  @patch('app.budgets_collection.find_one')
+    @patch('app.budgets_collection.find_one')
     @patch('app.budgets_collection.update_one')
     def test_add_transaction(self, mock_update, mock_find_one):
         # Assuming the user is logged in and there's a budget to add a transaction to
