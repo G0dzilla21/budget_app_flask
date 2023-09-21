@@ -11,10 +11,11 @@ from datetime import datetime, timedelta
 
 from collections import defaultdict
 
+
+app = Flask(__name__)
 load_dotenv()
 
-app = Flask(__name__, static_url_path='/static')
-app.config["SECRET_KEY"] = "your_secret_key"
+app.config["API_SECRET_KEY"] = "api_secret_key"
 app.config["SESSION_TYPE"] = "filesystem"
 
 bcrypt = Bcrypt(app)
@@ -28,6 +29,12 @@ budgets_collection = db["budgets"]
 # For user data
 users_collection = db["users"]
 
+# chatbot api key
+api_secret_key = os.getenv("GPT_SECRET_KEY")
+
+# chatbot api key
+api_secret_key = os.getenv("GPT_SECRET_KEY")
+
 # For user subscription data
 subscriptions_collection = db['subscriptions']  
 
@@ -36,6 +43,28 @@ def nav_menu():
     if "user_id" in session:
         user = db.users.find_one({"_id": session["user_id"]})
         return render_template("nav_menu.html", username=user["username"])
+
+@app.route("/dashboard")
+def dashboard():
+    # Ensure user is logged in
+    if "user_id" not in session:
+        return redirect("/login")
+
+    # Retrieve the budgets associated with the logged-in user
+    budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
+    
+    # Extract data for chart from the budgets list
+    budget_names = [budget['name'] for budget in budgets]
+    budget_amounts = [budget['amount'] for budget in budgets]
+    budget_totals = [budget.get('total', 0) for budget in budgets]
+    print(budget_names)
+    # Now pass these to the template
+    return render_template("chart.html", 
+                           budgets=budgets,
+                           budget_names=budget_names,
+                           budget_amounts=budget_amounts,
+                           budget_totals=budget_totals, user_logged_in=True)
+
 
 @app.route("/")
 def index():
@@ -47,8 +76,8 @@ def index():
             update_budget_activity_status()
         except:
             flash("Problem updating budget statuses.", 'info')
-        return render_template("index.html", user=user, user_logged_in=True, budgets=user_budgets)
-    return render_template("index.html", user_logged_in=False)
+        return render_template("index.html", user=user, user_logged_in=True, budgets=user_budgets, api_secret_key=api_secret_key)
+    return render_template("index.html", user_logged_in=False, api_secret_key=api_secret_key)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -60,7 +89,7 @@ def register():
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
         db.users.insert_one({"username": username, "password": hashed_password, "email": email})
         return redirect("/login")
-    return render_template("register.html", message=None)  # Pass a message to the template if needed
+    return render_template("register.html", message=None, api_secret_key=api_secret_key)  # Pass a message to the template if needed
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -74,7 +103,7 @@ def login():
         else:
             message = "Invalid username or password"  # Add an error message if login fails
             return render_template("login.html", message=message)
-    return render_template("login.html", message=None)
+    return render_template("login.html", message=None, api_secret_key=api_secret_key)
 
 @app.route("/logout")
 def logout():
@@ -391,6 +420,13 @@ def edit_subscription(subscription_id):
     
     flash('Successfully edited subscription', 'success')  # 'success' is an optional category
     return redirect(url_for('subscriptions'))
+
+
+
+
+# @app.route('/')
+# def chat_gpt():
+#     return render_template('chat-gpt.html', api_secret_key=api_secret_key)    
 
 #function for updating budget status
 def update_budget_activity_status():

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <title>{% block title %}Budget App{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="../static/css/index.css">
@@ -24,6 +25,11 @@
         {% block content %}
         {% endblock %}
     </div>
+    {% if user_logged_in %}
+    {% include 'chat-gpt.html' %}
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
