@@ -54,7 +54,7 @@ def dashboard():
     budget_names = [budget['name'] for budget in budgets]
     budget_amounts = [budget['amount'] for budget in budgets]
     budget_totals = [budget.get('total', 0) for budget in budgets]
-    print(budget_names)
+    
     # Now pass these to the template
     return render_template("chart.html", 
                            budgets=budgets,
