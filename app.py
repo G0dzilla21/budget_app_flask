@@ -208,6 +208,29 @@ def update_budget(budget_id):
         return redirect("/")
     else:
         return redirect("/login")
+    
+@app.route("/manage_transactions/<budget_id>")
+def manage_transactions(budget_id):
+    if "user_id" in session:
+        user = db.users.find_one({"_id": session["user_id"]})
+        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
+
+        if not budget:
+            flash("Budget not found", "error")
+            return redirect("/")
+
+        # Extract data for the chart from the budget
+        budget_names = [budget['name']]
+        budget_amounts = [budget['amount']]
+        budget_totals = [budget.get('total', 0)]
+
+        return render_template("manage_transactions.html", 
+                               user=user, 
+                               budget=budget, 
+                               user_logged_in=True,
+                               budget_names=budget_names,
+                               budget_amounts=budget_amounts,
+                               budget_totals=budget_totals)   
 
 
 @app.route("/add_transaction/<budget_id>", methods=["POST"])
