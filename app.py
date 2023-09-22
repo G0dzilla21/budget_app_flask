@@ -1,6 +1,6 @@
 import os
 from bson import ObjectId
-from flask import Flask, json, render_template, request, redirect, session, jsonify, url_for, flash
+from flask import Flask, json, render_template, request, redirect, session, jsonify, url_for, flash, get_flashed_messages
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from mongo_connect import client
@@ -32,6 +32,9 @@ users_collection = db["users"]
 # chatbot api key
 api_secret_key = os.getenv("GPT_SECRET_KEY")
 
+# chatbot api key
+api_secret_key = os.getenv("GPT_SECRET_KEY")
+
 # For user subscription data
 subscriptions_collection = db['subscriptions']  
 
@@ -51,10 +54,10 @@ def dashboard():
     budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
     
     # Extract data for chart from the budgets list
-    budget_names = [budget['name'] for budget in budgets]
-    budget_amounts = [budget['amount'] for budget in budgets]
-    budget_totals = [budget.get('total', 0) for budget in budgets]
-    
+    budget_names = [budget['name'] for budget in budgets if budget.get('isActive', False)]
+    budget_amounts = [budget['amount'] for budget in budgets if budget.get('isActive', False)]
+    budget_totals = [budget.get('total', 0) for budget in budgets if budget.get('isActive', False)]
+    print(budget_names)
     # Now pass these to the template
     return render_template("chart.html", 
                            budgets=budgets,
@@ -67,8 +70,13 @@ def dashboard():
 def index():
     """Renders the index page."""
     if "user_id" in session:
+        try:
+            update_budget_activity_status()
+        except:
+            flash("Problem updating budget statuses.", 'info')
         user = db.users.find_one({"_id": session["user_id"]})
         user_budgets = list(budgets_collection.find({"user_id": session["user_id"]}))
+        
         return render_template("index.html", user=user, user_logged_in=True, budgets=user_budgets, api_secret_key=api_secret_key)
     return render_template("index.html", user_logged_in=False, api_secret_key=api_secret_key)
 
@@ -151,19 +159,25 @@ def create_budget():
         end_date = request.form["end_date"]
         category = request.form["budget_category"]
         
-        budgets_collection.insert_one({
-            "user_id": session["user_id"],
-            "name": budget_name,
-            "amount": budget_amount,
-            "date_created": datetime.utcnow(),
-            "created_by": username,
-            "startDate": start_date,
-            "endDate": end_date,
-            "category":  category,
-            "total": 0,
-            "transactions": []
 
-    })
+        if start_date <= end_date:
+            budgets_collection.insert_one({
+                "user_id": session["user_id"],
+                "name": budget_name,
+                "amount": budget_amount,
+                "date_created": datetime.utcnow(),
+                "created_by": username,
+                "startDate": start_date,
+                "endDate": end_date,
+                "category":  category,
+                "isActive": True,
+                "total": 0,
+                "transactions": []
+                })
+        elif start_date > end_date:
+            flash(u'Failed to add Budget... Confirm that your start date is before your end date.', 'info')
+
+    
         return redirect("/")
     else:
         return redirect("/login")
@@ -208,7 +222,59 @@ def update_budget(budget_id):
         return redirect("/")
     else:
         return redirect("/login")
-    
+
+
+@app.route("/add_transaction/<budget_id>", methods=["POST"])
+def add_transaction(budget_id):
+    if "user_id" in session:
+        item = request.form["transaction_item"]
+        amount = float(request.form["transaction_amount"])
+
+        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
+        if not budget:
+            return redirect("/")
+
+        # Calculate the total of existing transactions
+        existing_transactions_total = sum(trans["amount"] for trans in budget["transactions"])
+
+        # Validate the new transaction
+        if amount < 0 or (existing_transactions_total + amount) > budget["amount"]:
+            flash(u'Failed: You are attempting a transaction that will surpass your budget!', 'info')
+            return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
+
+        # Add the new transaction
+        new_transaction = {
+        "item": item,
+        "amount": amount,
+        "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        new_total = budget.get("total", 0) + amount
+        budgets_collection.update_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]},
+                                      {"$set": {"total": new_total}, "$push": {"transactions": new_transaction}})
+        
+
+    return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
+@app.route("/remove_transaction/<budget_id>/<transaction_index>", methods=["GET"])
+def remove_transaction(budget_id, transaction_index):
+    if "user_id" in session:
+        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
+        if not budget:
+            return redirect("/")
+        
+        # Get the transaction to remove
+        transaction_to_remove = budget["transactions"][int(transaction_index)]
+        
+        # Update the "total" and remove the transaction
+        new_total = budget.get("total", 0) - transaction_to_remove["amount"]
+        budgets_collection.update_one(
+            {"_id": ObjectId(budget_id), "user_id": session["user_id"]},
+            {
+                "$set": {"total": new_total},
+                "$pull": {"transactions": transaction_to_remove}
+            }
+        )
+    return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
+@app.route("/manage_transactions/<budget_id>")
 @app.route("/manage_transactions/<budget_id>")
 def manage_transactions(budget_id):
     if "user_id" in session:
@@ -230,58 +296,7 @@ def manage_transactions(budget_id):
                                user_logged_in=True,
                                budget_names=budget_names,
                                budget_amounts=budget_amounts,
-                               budget_totals=budget_totals)   
-
-
-@app.route("/add_transaction/<budget_id>", methods=["POST"])
-def add_transaction(budget_id):
-    if "user_id" in session:
-        item = request.form["transaction_item"]
-        amount = float(request.form["transaction_amount"])
-
-        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
-        if not budget:
-            return redirect("/")
-
-        # Calculate the total of existing transactions
-        existing_transactions_total = sum(trans["amount"] for trans in budget["transactions"])
-
-        # Validate the new transaction
-        if amount < 0 or (existing_transactions_total + amount) > budget["amount"]:
-            return redirect("/")
-
-        # Add the new transaction
-        new_transaction = {
-        "item": item,
-        "amount": amount,
-        "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        new_total = budget.get("total", 0) + amount
-        budgets_collection.update_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]},
-                                      {"$set": {"total": new_total}, "$push": {"transactions": new_transaction}})
-        
-
-    return redirect("/")
-@app.route("/remove_transaction/<budget_id>/<transaction_index>", methods=["GET"])
-def remove_transaction(budget_id, transaction_index):
-    if "user_id" in session:
-        budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
-        if not budget:
-            return redirect("/")
-        
-        # Get the transaction to remove
-        transaction_to_remove = budget["transactions"][int(transaction_index)]
-        
-        # Update the "total" and remove the transaction
-        new_total = budget.get("total", 0) - transaction_to_remove["amount"]
-        budgets_collection.update_one(
-            {"_id": ObjectId(budget_id), "user_id": session["user_id"]},
-            {
-                "$set": {"total": new_total},
-                "$pull": {"transactions": transaction_to_remove}
-            }
-        )
-    return redirect("/")
+                               budget_totals=budget_totals)
 
 @app.route('/subscriptions', methods=['GET', 'POST'])
 def subscriptions():
@@ -424,6 +439,14 @@ def edit_subscription(subscription_id):
 # def chat_gpt():
 #     return render_template('chat-gpt.html', api_secret_key=api_secret_key)    
 
+#function for updating budget status
+def update_budget_activity_status():
+    current_date = datetime.utcnow()
+    budgets = budgets_collection.find()
+    for budget in budgets:
+        end_date = datetime.strptime(str(budget["endDate"]), "%Y-%m-%d")
+        is_active = current_date < (end_date + timedelta(days=1))
+        budgets_collection.update_one({"_id": budget["_id"]}, {"$set": {"isActive": is_active}})
 
 if __name__ == "__main__":
     app.run(debug=True)
