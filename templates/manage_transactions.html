@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}Manage Transactions{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Manage Transactions</h1>
+
+
+    
+    <!-- Display budget details -->
+    <div class="card mb-4">
+        <div class="card-header">Budget Details</div>
+        <div class="card-body">
+            <h5>{{ budget.category }}: {{ budget.name }}</h5>
+
+            <!-- Show budget spending color indicator -->
+                {% set remaining = budget.amount - budget.total|round(2) %}
+
+                {% if remaining > (budget.amount / 2) %}
+                <span class="badge bg-success custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                {% elif remaining > (budget.amount / 3) %}
+                <span class="badge bg-warning custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                {% else %}
+                <span class="badge bg-danger custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                {% endif %}
+            <!-- End of if statements for color indicator -->
+
+            <span class="badge bg-white rounded-pill border">Start Date: {{ budget.startDate }} | End Date: {{ budget.endDate }}</span>
+        </div>
+        
+    </div>
+
+
+<!-- Add a Transaction form -->
+    <div class="card mb-4">
+        <div class="card-header" data-toggle="collapse" data-target="#addTransactionContent" style="cursor:pointer;">Add a Transaction</div>
+        <div class="card-body collapse" id="addTransactionContent">
+            <form action="/add_transaction/{{ budget._id }}" method="post">
+                {% if budget.isActive == true %}
+                <div class="mb-2">
+                    <label for="transaction_item{{ budget._id }}" class="form-label">Item:</label>
+                    <input type="text" id="transaction_item{{ budget._id }}" name="transaction_item" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                    <label for="transaction_amount{{ budget._id }}" class="form-label">Amount:</label>
+                    <input type="number" id="transaction_amount{{ budget._id }}" name="transaction_amount" class="form-control" step="0.01" required>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <input type="submit" value="Add Transaction" class="btn btn-primary">
+                </div>
+                {% endif %}
+
+                {% if budget.isActive == false %}
+                <span class="badge bg-dark custom-badge text-danger border-danger">Budget Expired on {{ budget.endDate }}. <br><br>Either create a new budget, or edit the budget to expire at a later date.</span>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- List of transactions and remaining balance -->
+    <div class="card">
+        <div class="card-header">Transactions</div>
+        <div class="card-body">
+            <h6>Transactions:</h6>
+            <ul class="list-group">
+                {% for transaction in budget.transactions %}
+                <li class="list-group-item">
+                    {{ transaction.item }}: ${{ transaction.amount|round(2) }}
+                    <a href="/remove_transaction/{{ budget._id }}/{{ loop.index0 }}" class="btn btn-danger btn-sm">Remove</a>
+                    {% if transaction.date > budget.endDate %}
+                    <br> <p class="badge bg-dark text-danger" >Date: {{ transaction.date }}</p>
+                    {% endif %}
+
+                    {% if transaction.date <= budget.endDate %}
+                    <br> <p class="badge bg-light text-dark" >Date: {{ transaction.date }}</p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="mt-2">
+                Remaining balance: ${{ budget.amount|round(2) - budget.total|round(2) }}
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-header" data-toggle="collapse" data-target="#chartView" style="cursor:pointer;">View Spending Chart</div>
+            <div class="card-body collapse" id="chartView">
+            <canvas id="budgetChart" width="400" height="200"></canvas>
+        
+                <script>
+                    //THIS SCRIPT WILL HAVE SYNTAX CONFLICT IN SOME IDE, PLEASE IGNORE
+        
+                    // Extracting the budget names, amounts, and totals from the Flask context to JavaScript
+                    var budgetNames = {{ budget_names|tojson }};
+                    var budgetAmounts = {{ budget_amounts|tojson }};
+                    var budgetTotals = {{ budget_totals|tojson }};
+                    
+                    // Create the chart
+                    var ctx = document.getElementById('budgetChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: budgetNames,
+                            datasets: [{
+                                label: 'Budget Amount',
+                                data: budgetAmounts,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Total Spent',
+                                data: budgetTotals,
+                                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    
+                </script>
+                </div>
+            </div>
+    </div>
+    
+</div>
+
+{% endblock %}
