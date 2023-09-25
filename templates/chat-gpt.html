@@ -176,6 +176,24 @@
 
                 } catch (error) {
                     console.error('Error:', error);
+
+                    const chatMessagesDiv = document.querySelector('.chat-messages');
+
+                    // User's message element
+                    const userMessageElem = document.createElement('p');
+                    userMessageElem.textContent = `User: ${userMessage}`;
+                    userMessageElem.classList.add('user-message');
+                    chatMessagesDiv.appendChild(userMessageElem);
+
+                    // Error message element
+                    const errorElem = document.createElement('p');
+                    errorElem.textContent = 'Assistant: Sorry, I can not provide a response at this time.';
+                    errorElem.classList.add('ai-message');
+                    chatMessagesDiv.appendChild(errorElem);
+
+                    messageInput.value = "";
+                    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+                    messageInput.focus();
                 }
             });
         });
@@ -184,4 +202,3 @@
 </body>
 
 </html>
-
