@@ -22,6 +22,7 @@ bcrypt = Bcrypt(app)
 Session(app)
 
 db = client["Budgets_Flask"]
+test_db = client["Budgets_Test"]
 
 # For budget data
 budgets_collection = db["budgets"]
@@ -29,14 +30,17 @@ budgets_collection = db["budgets"]
 # For user data
 users_collection = db["users"]
 
-# chatbot api key
-api_secret_key = os.getenv("GPT_SECRET_KEY")
-
-# chatbot api key
-api_secret_key = os.getenv("GPT_SECRET_KEY")
-
 # For user subscription data
 subscriptions_collection = db['subscriptions']  
+test_subscriptions_collection = test_db['subscriptions']
+
+# chatbot api key
+api_secret_key = os.getenv("GPT_SECRET_KEY")
+
+# chatbot api key
+api_secret_key = os.getenv("GPT_SECRET_KEY")
+
+
 
 
 def nav_menu():
@@ -252,8 +256,8 @@ def add_transaction(budget_id):
         budgets_collection.update_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]},
                                       {"$set": {"total": new_total}, "$push": {"transactions": new_transaction}})
         
-
     return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
+
 @app.route("/remove_transaction/<budget_id>/<transaction_index>", methods=["GET"])
 def remove_transaction(budget_id, transaction_index):
     if "user_id" in session:
@@ -274,7 +278,7 @@ def remove_transaction(budget_id, transaction_index):
             }
         )
     return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
-@app.route("/manage_transactions/<budget_id>")
+
 @app.route("/manage_transactions/<budget_id>")
 def manage_transactions(budget_id):
     if "user_id" in session:

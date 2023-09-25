@@ -85,7 +85,7 @@
         <div class="card mt-4">
             <div class="card-header" data-toggle="collapse" data-target="#chartView" style="cursor:pointer;">View Spending Chart</div>
             <div class="card-body collapse" id="chartView">
-            <canvas id="budgetChart" width="400" height="200"></canvas>
+            <canvas id="budgetChart" width="600" height="400"></canvas>
         
                 <script>
                     //THIS SCRIPT WILL HAVE SYNTAX CONFLICT IN SOME IDE, PLEASE IGNORE
@@ -117,7 +117,7 @@
                             }]
                         },
                         options: {
-                            responsive: true,
+                            responsive: false,
                             scales: {
                                 y: {
                                     beginAtZero: true
