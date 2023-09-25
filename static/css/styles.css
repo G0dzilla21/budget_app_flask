@@ -1,0 +1,83 @@
+/* static/styles.css */
+/* Style the navigation menu */
+.navbar {
+    background-color: #3498db;
+    padding: 10px 0;
+}
+
+.navbar-brand {
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.nav-link {
+    color: #ffffff;
+    font-size: 16px;
+    margin: 0 10px;
+}
+
+.nav-link:hover {
+    color: #f39c12;
+}
+
+.custom-badge {
+    padding: 8px 12px; /* Adjust as necessary to get the size you want */
+    font-size: 1.2rem; /* Adjust as necessary to increase font size */
+}
+
+
+
+/* Chat box container */
+.chat-box {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  /* Chat box button to toggle visibility */
+  #show-chat-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  /* Chat container */
+  #chat-container {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+    display: none; /* Initially hidden */
+  }
+  
+  /* Chat messages */
+  .chat-messages {
+    padding: 10px;
+    max-height: 300px;
+    overflow-y: scroll;
+  }
+  
+  /* Chat input and send button */
+  #chat-form {
+    display: flex;
+    padding: 10px;
+  }
+  
+  #message-input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-right: 5px;
+  }
+  
+  #chat-form button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
