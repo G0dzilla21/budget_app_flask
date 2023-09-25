@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Budget App{% endblock %}
+
+{% block content %}
+
+{% if user_logged_in and budgets %}
+
+
+<div class="card mt-4">
+    <div class="card-body">
+        <canvas id="budgetChart" width="400" height="400"></canvas>
+    </div>
+</div>
+<script>
+    //THIS SCRIPT WILL HAVE SYNTAX CONFLICT IN SOME IDE, PLEASE IGNORE
+
+    // Extracting the budget names, amounts, and totals from the Flask context to JavaScript
+    var budgetNames = {{ budget_names|tojson }};
+    var budgetAmounts = {{ budget_amounts|tojson }};
+    var budgetTotals = {{ budget_totals|tojson }};
+    
+    // Create the chart
+    var ctx = document.getElementById('budgetChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: budgetNames,
+            datasets: [{
+                label: 'Budget Amount',
+                data: budgetAmounts,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Total Spent',
+                data: budgetTotals,
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+</script>
+
+{% endif %}
+
+{% endblock %}

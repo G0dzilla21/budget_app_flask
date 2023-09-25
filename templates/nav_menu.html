@@ -1,0 +1,59 @@
+<style>
+    /* Custom Navbar Styles */
+    .navbar-custom {
+        background-color: #343a40; /* Bootstrap's dark theme color */
+    }
+
+    .navbar-custom .navbar-brand,
+    .navbar-custom .nav-link {
+        color: #fff;
+        transition: color 0.3s;
+    }
+
+    .navbar-custom .navbar-brand:hover,
+    .navbar-custom .nav-link:hover {
+        color: #10d48a; /* Green color similar to your logo */
+    }
+
+    /* Currently active page */
+    .nav-item.active .nav-link {
+        color: #10d48a;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <a class="navbar-brand" href="/">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Dollar_sign_in_circle_cleaned_%28PD_version%29.green.svg" alt="Logo" width="30" height="30" class="d-inline-block align-top">
+        Budget App
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            {% if user_logged_in %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   Main Menu
+                </a>
+                <div class="dropdown-menu" aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="/">Home</a>
+                    <a class="dropdown-item" href="/dashboard">Dashboard</a>
+                    <a class="dropdown-item" href="/subscriptions">Subscriptions</a>
+                    <a class="dropdown-item" href="/profile">Profile</a>
+                    <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>

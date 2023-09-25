@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Budget App{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if user_logged_in %}
+    
+    <h1 class="text-center mb-4">User Budgets</h1>
+
+    <!-- Budget creation form -->
+    <div class="card mb-4">
+        <div class="card-header" data-toggle="collapse" data-target="#createBudgetContent" style="cursor:pointer;" ><span>Create a New Budget</span></div>
+        <div class="card-body collapse" id="createBudgetContent">
+            <form action="/create_budget" method="post">
+                <div class="mb-3">
+                    <label for="budget_name" class="form-label">Budget Name:</label>
+                    <input type="text" id="budget_name" name="budget_name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="budget_amount" class="form-label">Amount:</label>
+                    <input type="number" id="budget_amount" name="budget_amount" class="form-control" step="0.01" required>
+                </div>
+                <div class="mb-3">
+                    <label for="start_date" class="form-label">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="end_date" class="form-label">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="budget_category" class="form-label">Category:</label>
+                    <select id="budget_category" name="budget_category" class="form-select" required>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Food">Food</option>
+                    </select>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <input type="submit" value="Create Budget" class="btn btn-primary">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- List of budgets -->
+        {% if budgets %}
+        <div class="card">
+            <div class="card-header" data-toggle="collapse" data-target="#BudgetsContent" style="cursor:pointer;" aria-expanded="true">Active Budgets</div>
+            <div class="card-body collapse show" id="BudgetsContent">
+            <ul class="list-group list-group-flush">
+                    {% for budget in budgets %}
+                    {% if budget.isActive == true %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <!-- Show budget spending color indicato    r -->
+                                {% set remaining = budget.amount - budget.total|round(2) %}
+
+                                <h5>{{budget.category}}: {{ budget.name }}</h5>
+                                {% if remaining > (budget.amount / 2) %}
+                                <span class="badge bg-success custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                                {% elif remaining > (budget.amount / 3) %}
+                                <span class="badge bg-warning custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                                {% else %}
+                                <span class="badge bg-danger custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                                {% endif %}
+                                <!-- End of if statements for color indicator -->
+                                
+                                {% if budget.isActive == true %}
+                                <span class="badge bg-light rounded-pill border">Start Date: {{ budget.startDate }} | End Date: {{ budget.endDate }}</span>
+                                {% endif %}
+
+                                {% if budget.isActive == false %}
+                                <span class="badge bg-dark custom-badge text-danger">Budget Expired on {{ budget.endDate }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <!-- Edit Manage and Delete buttons -->
+                                <a href="/manage_transactions/{{ budget._id }}" class="btn btn-lg btn-info ml-2" style="cursor:pointer;">Manage Transactions</a>
+                                <a href="/edit_budget/{{ budget._id }}" class="btn btn-lg btn-warning ml-2">Edit</a>
+                                <a href="/delete_budget/{{ budget._id }}" class="btn btn-lg btn-danger ml-2" onclick="return confirm('Are you sure?');">Delete</a>
+                            </div>
+                    </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <br><span class="badge bg-important rounded-pill grey-bg">{{budget.name}} was created on {{ budget.date_created }} by {{ budget.created_by }}</span><br>
+                        </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+            
+        </div>
+
+        <div class="card">
+            <div class="card-header" data-toggle="collapse" data-target="#BudgetsContentExpired" style="cursor:pointer;">Expired Budgets</div>
+            <div class="card-body collapse" id="BudgetsContentExpired">
+            <ul class="list-group list-group-flush">
+                    {% for budget in budgets %}
+                    {% if budget.isActive == false %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <!-- Show budget spending color indicato    r -->
+                                {% set remaining = budget.amount - budget.total|round(2) %}
+
+                                <h5>{{budget.category}}: {{ budget.name }}</h5>
+                                {% if remaining > (budget.amount / 2) %}
+                                <span class="badge bg-success custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                                {% elif remaining > (budget.amount / 3) %}
+                                <span class="badge bg-warning custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                                {% else %}
+                                <span class="badge bg-danger custom-badge rounded-pill border-danger">${{ remaining }} of ${{ budget.amount }} remaining</span>
+                                {% endif %}
+                                <!-- End of if statements for color indicator -->
+                                
+                                {% if budget.isActive == true %}
+                                <span class="badge bg-light rounded-pill border">Start Date: {{ budget.startDate }} | End Date: {{ budget.endDate }}</span>
+                                {% endif %}
+
+                                {% if budget.isActive == false %}
+                                <span class="badge bg-dark custom-badge text-danger">Budget Expired on {{ budget.endDate }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <!-- Edit Manage and Delete buttons -->
+                                <a href="/manage_transactions/{{ budget._id }}" class="btn btn-lg btn-info ml-2" style="cursor:pointer;">Manage Transactions</a>
+                                <a href="/edit_budget/{{ budget._id }}" class="btn btn-lg btn-warning ml-2">Edit</a>
+                                <a href="/delete_budget/{{ budget._id }}" class="btn btn-lg btn-danger ml-2" onclick="return confirm('Are you sure?');">Delete</a>
+                            </div>
+                    </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <br><span class="badge bg-important rounded-pill grey-bg">{{budget.name}} was created on {{ budget.date_created }} by {{ budget.created_by }}</span><br>
+                        </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+            
+        </div>
+
+        {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            You have no budgets. Add one above!
+        </div>
+        {% endif %}
+
+    {% else %}
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="alert alert-danger" role="alert">
+                You are not logged in. <a href="/login" class="alert-link">Login</a> or <a href="/register" class="alert-link">Register</a>.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
