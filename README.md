@@ -1,6 +1,6 @@
-# Expense Tracker and Budgeting App
-
-## ![Image](https://cdn3.iconfinder.com/data/icons/iconae-light/100/configuration-monkeywrench-settings-spanner-tool-tools-wrench-1024.png) Developers:
+# Expense Tracker and Budgeting App 
+![Image](https://png.pngtree.com/png-vector/20230225/ourmid/pngtree-budget-line-icon-png-image_6620500.png)
+## Developers:
 Joshua Kraayvanger  
 Cody Reeves  
 Ned Nguyen  
