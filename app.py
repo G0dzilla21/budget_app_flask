@@ -233,7 +233,6 @@ def add_transaction(budget_id):
     if "user_id" in session:
         item = request.form["transaction_item"]
         amount = float(request.form["transaction_amount"])
-
         budget = budgets_collection.find_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]})
         if not budget:
             return redirect("/")
@@ -254,8 +253,7 @@ def add_transaction(budget_id):
         }
         new_total = budget.get("total", 0) + amount
         budgets_collection.update_one({"_id": ObjectId(budget_id), "user_id": session["user_id"]},
-                                      {"$set": {"total": new_total}, "$push": {"transactions": new_transaction}})
-        
+                                      {"$set": {"total": new_total}, "$push": {"transactions": new_transaction}})       
     return redirect(f"/manage_transactions/{ObjectId(budget_id)}")
 
 @app.route("/remove_transaction/<budget_id>/<transaction_index>", methods=["GET"])
