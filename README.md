@@ -1,6 +1,6 @@
-# budget_app_flask
+# Expense Tracker and Budgeting App
 
-## Developers:
+## ![Image](https://cdn3.iconfinder.com/data/icons/iconae-light/100/configuration-monkeywrench-settings-spanner-tool-tools-wrench-1024.png) Developers:
 Joshua Kraayvanger  
 Cody Reeves  
 Ned Nguyen  
