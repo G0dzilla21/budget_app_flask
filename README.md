@@ -21,5 +21,6 @@ Ned Nguyen
 
 
 ## Getting started:
+- Install required Python packages
 - Run the app.py file  
 - In your browser url bar, route to 127.0.0.1:5000  
